@@ -27,6 +27,18 @@ class WordFilter:
         Checks if the passage exists in the filters and hashtable, sequentially.
         The first filter in does not exist ends the method with False, otherwise
         True.
+
+      Static Methods
+      -------
+      hash(hash_type, value)
+        Returns hashed value
+
+      Class Methods
+      -------
+      create_default_filter()
+        Creates and returns a filter object with set bf sizes of 1000 and
+        ht size of 30.
+
       """
 
     def __init__(self, bf1_size, bf2_size, ht_size):
@@ -37,3 +49,34 @@ class WordFilter:
         except TypeError:
             raise ValueError(
                 "One of the arguments provided was not an integer.")
+
+    @classmethod
+    def create_default_filter(cls):
+        """ Creates/Returns a default filter object with set arguments.
+        Parameters
+        ----------
+        cls
+
+        Returns
+        -------
+        obj
+            Returns instance of WordFilter.
+        """
+        return cls(1000, 1000, 30)
+
+    @staticmethod
+    def hash(hash_type, value):
+        """ Hashes value given a hash_type and returns it.
+        Parameters
+        ----------
+        hash_type: str
+            Type of hash to use for function (256, 384).
+        value: str
+            String to be hashed.
+
+        Returns
+        -------
+        int
+            Hashed value of value from hash (depending on hash_type).
+        """
+        pass
