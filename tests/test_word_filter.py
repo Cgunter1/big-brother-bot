@@ -62,12 +62,11 @@ class WordFilterTest(TestCase):
         with self.assertRaises(ValueError):
             WordFilter.hash(None, "hello")
 
-    def test_add_passage_wout_transl(self):
-        """Tests the add_passage method with certain inputs
-        and does it for both without translation.
+    def test_add_passage(self):
+        """Tests the add_passage method with a normal input.
         """
         wf = WordFilter.create_default_filter()
-        wf.add_passage_wout_translation("Hello World")
+        wf.add_passage("Hello World", "Goodbye")
 
         # Makes sure that it exists in both bloom filters
         self.assertTrue(1 in wf.bloom_filter1)
@@ -79,24 +78,19 @@ class WordFilterTest(TestCase):
 
         # Makes sure that the passage exists in the hashtable.
         self.assertEqual(wf.hash_table[4]["word"], "Hello World")
+        self.assertEqual(wf.hash_table[4]["translation"], "Goodbye")
+        self.assertEqual(wf.hash_table[4]["next"], None)
 
-    def test_add_passage_wout_transl_and_dup(self):
-        """Tests the add_passage method with certain outputs
-        and do.
+    def test_add_passage_and_dup(self):
+        """Tests the add_passage method with adding duplicate
+        words to the word filter.
         """
         wf = WordFilter.create_default_filter()
-        wf.add_passage_wout_translation("Hello World")
+        wf.add_passage("Hello World", None)
+        wf.add_passage("Hello World", None)
 
-        # Makes sure that it exists in both bloom filters
-        self.assertTrue(1 in wf.bloom_filter1)
-        self.assertTrue(1 in wf.bloom_filter2)
-
-        # Makes sure it only exists once and not multiple times.
-        self.assertEqual(wf.bloom_filter1.count(1), 1)
-        self.assertTrue(wf.bloom_filter2.count(1), 1)
-
-        # Makes sure that the passage exists in the hashtable.
-        self.assertEqual(wf.hash_table[4]["word"], "Hello World")
+        # Makes sure that the hashtable does not add duplicates.
+        self.assertEqual(wf.hash_table[4]["next"], None)
 
 
 if __name__ == "__main__":

@@ -34,10 +34,17 @@ class WordFilter:
         The first filter in does not exist ends the method with False, otherwise
         True.
 
+        ** TODO: Possibly add some kind of optimization that raises the word to the
+        front of the linked list if it is looked for.
+
       Static Methods
       -------
       hash(hash_type, value)
         Returns hashed value
+
+      create_passage(word, translation=None)
+        Returns a passage dict with the word and a translation (optional).
+
 
       Class Methods
       -------
@@ -71,8 +78,27 @@ class WordFilter:
         return cls(1000, 1000, 30)
 
     @staticmethod
+    def create_passage(passage, translation=None):
+        """Returns a passage dict with the word and a translation (optional).
+        Parameters
+        ----------
+        passage: str
+            Passage being inserted into the hashtable.
+        translation: str
+            Optional phrase that is an APPROPRIATE replacement for the 
+            passage.
+
+        Returns
+        -------
+        dict
+            Dictionary of word and tranlsation along with pointer "next" for
+            linked list.
+        """
+        return {"word": passage, "translation": translation, "next": None}
+
+    @staticmethod
     def hash(hash_type, value):
-        """ Hashes value given a hash_type and returns it.
+        """Hashes value given a hash_type and returns it.
         Parameters
         ----------
         hash_type: str
@@ -106,13 +132,15 @@ class WordFilter:
         else:
             raise ValueError("Hash_type argument not 256 or 384")
 
-    def add_passage_wout_translation(self, value):
+    def add_passage(self, passage, translation):
         """ Adds value to both bloom filters and to the hash
         table in a linked list to cover for collisons.
         Parameters
         ----------
-        value: str
+        passage: str
             String to added.
+        tranlsation: str
+            String that is the appropriate version of passage.
 
         Returns
         -------
@@ -120,8 +148,8 @@ class WordFilter:
             Returns True if the passage is put in and false if not.
         """
 
-        hash_256_value = self.hash("256", value)
-        hash_384_value = self.hash("384", value)
+        hash_256_value = self.hash("256", passage)
+        hash_384_value = self.hash("384", passage)
 
         # Sets the passage for the bloomfilters.
         bf1_index = hash_256_value % len(self.bloom_filter1)
@@ -129,7 +157,7 @@ class WordFilter:
         bf2_index = hash_384_value % len(self.bloom_filter2)
         self.bloom_filter2[bf2_index] = 1
 
-        passage_obj = {"word": value, "next": None}
+        passage_obj = self.create_passage(passage, translation)
 
         # Value in hash_table.
         ht_index = hash_256_value % len(self.hash_table)
@@ -138,6 +166,16 @@ class WordFilter:
         if (hash_table_value == None):
             self.hash_table[ht_index] = passage_obj
         else:
-            while (hash_table_value.next != None):
-                hash_256_value = hash_table_value.next
-            hash_table_value.next = passage_obj
+            # Basically this keeps going throught the linked
+            # list of the hashtable until it finds a dupilicate
+            # which means it just cancels out or adds the word
+            # and return True.
+            while (hash_table_value["next"] != None):
+                hash_table_value = hash_table_value["next"]
+                if(hash_table_value["word"] == passage):
+                    return False
+
+            if (hash_table_value["word"] == passage):
+                return False
+            hash_table_value["next"] = passage_obj
+            return True
