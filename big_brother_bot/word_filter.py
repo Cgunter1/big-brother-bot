@@ -1,3 +1,6 @@
+from hashlib import sha256, sha384
+
+
 class WordFilter:
     """
       A class used to represent a word filter
@@ -20,8 +23,11 @@ class WordFilter:
 
       Methods
       -------
-      add_passage(passage):
-        Adds passage to the 2 bloom filters and hashtable.
+      add_passage_wout_translation(passage):
+        Adds passage to the 2 bloom filters and hashtable without translation.
+
+      add_passage_with_translation(passage):
+        Adds passage to the 2 bloom filters and hashtable without translation.
 
       check_passage(passage):
         Checks if the passage exists in the filters and hashtable, sequentially.
@@ -45,7 +51,7 @@ class WordFilter:
         try:
             self.bloom_filter1 = [0] * bf1_size
             self.bloom_filter2 = [0] * bf2_size
-            self.hash_table = [0] * ht_size
+            self.hash_table = [None] * ht_size
         except TypeError:
             raise ValueError(
                 "One of the arguments provided was not an integer.")
@@ -79,4 +85,59 @@ class WordFilter:
         int
             Hashed value of value from hash (depending on hash_type).
         """
-        pass
+
+        try:
+            value = value.encode()
+        except AttributeError:
+            raise ValueError("Value argument is not string")
+
+        if (hash_type == "256"):
+          # 681
+            sha_value = sha256()
+            sha_value.update(value)
+            hashed_value = sha_value.hexdigest()
+            return int(hashed_value, 16)
+        elif (hash_type == "384"):
+          # 674
+            sha_value = sha384()
+            sha_value.update(value)
+            hashed_value = sha_value.hexdigest()
+            return int(hashed_value, 16)
+        else:
+            raise ValueError("Hash_type argument not 256 or 384")
+
+    def add_passage_wout_translation(self, value):
+        """ Adds value to both bloom filters and to the hash
+        table in a linked list to cover for collisons.
+        Parameters
+        ----------
+        value: str
+            String to added.
+
+        Returns
+        -------
+        bool
+            Returns True if the passage is put in and false if not.
+        """
+
+        hash_256_value = self.hash("256", value)
+        hash_384_value = self.hash("384", value)
+
+        # Sets the passage for the bloomfilters.
+        bf1_index = hash_256_value % len(self.bloom_filter1)
+        self.bloom_filter1[bf1_index] = 1
+        bf2_index = hash_384_value % len(self.bloom_filter2)
+        self.bloom_filter2[bf2_index] = 1
+
+        passage_obj = {"word": value, "next": None}
+
+        # Value in hash_table.
+        ht_index = hash_256_value % len(self.hash_table)
+        hash_table_value = self.hash_table[ht_index]
+
+        if (hash_table_value == None):
+            self.hash_table[ht_index] = passage_obj
+        else:
+            while (hash_table_value.next != None):
+                hash_256_value = hash_table_value.next
+            hash_table_value.next = passage_obj

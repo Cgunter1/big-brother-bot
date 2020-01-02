@@ -38,3 +38,66 @@ class WordFilterTest(TestCase):
     def test_hash_function(self):
         """Tests the hash function for valid and invalid values.
         """
+
+        # Both values must be the same, if not the hash does
+        # not work.
+        hashed_value1 = WordFilter.hash("256", "Hello World!")
+        hashed_value2 = WordFilter.hash("256", "Hello World!")
+
+        self.assertNotEqual(hashed_value1, "Hello World!")
+        self.assertEqual(hashed_value1, hashed_value2)
+
+        # Test values with 384 hash.
+        hashed_value1 = WordFilter.hash("384", "Hello World!")
+        hashed_value2 = WordFilter.hash("384", "Hello World!")
+
+        self.assertNotEqual(hashed_value1, "Hello World!")
+        self.assertEqual(hashed_value1, hashed_value2)
+
+        # Test values with invalid inputs
+        with self.assertRaises(ValueError):
+            WordFilter.hash("256", None)
+        with self.assertRaises(ValueError):
+            WordFilter.hash("256", 12)
+        with self.assertRaises(ValueError):
+            WordFilter.hash(None, "hello")
+
+    def test_add_passage_wout_transl(self):
+        """Tests the add_passage method with certain inputs
+        and does it for both without translation.
+        """
+        wf = WordFilter.create_default_filter()
+        wf.add_passage_wout_translation("Hello World")
+
+        # Makes sure that it exists in both bloom filters
+        self.assertTrue(1 in wf.bloom_filter1)
+        self.assertTrue(1 in wf.bloom_filter2)
+
+        # Makes sure it only exists once and not multiple times.
+        self.assertEqual(wf.bloom_filter1.count(1), 1)
+        self.assertTrue(wf.bloom_filter2.count(1), 1)
+
+        # Makes sure that the passage exists in the hashtable.
+        self.assertEqual(wf.hash_table[4]["word"], "Hello World")
+
+    def test_add_passage_wout_transl_and_dup(self):
+        """Tests the add_passage method with certain outputs
+        and do.
+        """
+        wf = WordFilter.create_default_filter()
+        wf.add_passage_wout_translation("Hello World")
+
+        # Makes sure that it exists in both bloom filters
+        self.assertTrue(1 in wf.bloom_filter1)
+        self.assertTrue(1 in wf.bloom_filter2)
+
+        # Makes sure it only exists once and not multiple times.
+        self.assertEqual(wf.bloom_filter1.count(1), 1)
+        self.assertTrue(wf.bloom_filter2.count(1), 1)
+
+        # Makes sure that the passage exists in the hashtable.
+        self.assertEqual(wf.hash_table[4]["word"], "Hello World")
+
+
+if __name__ == "__main__":
+    main()
