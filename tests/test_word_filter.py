@@ -81,7 +81,7 @@ class WordFilterTest(TestCase):
         self.assertEqual(wf.hash_table[4]["translation"], "Goodbye")
         self.assertEqual(wf.hash_table[4]["next"], None)
 
-    def test_add_passage_and_dup(self):
+    def test_add_passage_with_duplicates(self):
         """Tests the add_passage method with adding duplicate
         words to the word filter.
         """
