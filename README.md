@@ -1,5 +1,5 @@
 # big-brother-bot
-This a discord bot that will moniter messages on a guild and make sure no one says anything not allowed. If so, it either deletes it or edits it with a more appropriate word.
+This a discord bot that will monitor messages on a guild and make sure no one says anything not allowed. If so, it either deletes it or edits it with a more appropriate word.
 
 # Goals
 1. Set Up the code, so it can read and detect words/phrases in messages. Limit of words per phrase would be like 3 (i.e. "Hello My World" would be a 3 worded phrase).
